@@ -11,10 +11,18 @@ namespace Lab.dto
         public int Id { get; set; }
         public string Login { get; set; }
         public string Password { get; set; }
+        public Role Role { get; set; }
 
         public override string ToString()
         {
-            return $"Id: {Id}. Log: {Login}. Pass: {Password}";
+            return $"Id: {Id}. Log: {Login}. Pass: {Password}. Role: {Role.ToString()}";
         }
+    }
+
+    public enum Role
+    {
+        User = 1,
+        Admin = 2,
+        Moderator = 42
     }
 }
