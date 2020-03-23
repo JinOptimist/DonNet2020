@@ -1,4 +1,5 @@
-﻿using Lab.dto;
+﻿using Lab.db;
+using Lab.dto;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -11,15 +12,24 @@ namespace Lab
 {
     class Program
     {
-        public const string UserFileName = "Users.txt";
+        private static UserRepository _userRepository;
+        private static BoobsRepository _boobsRepository;
+        private static UiConsole _uiConsole;
+
         static void Main(string[] args)
         {
+            _userRepository = new UserRepository();
+            _boobsRepository = new BoobsRepository();
+            _uiConsole = new UiConsole();
+
+
             User user = null;
             do
             {
                 Console.WriteLine("Login or Registration?");
                 Console.WriteLine("Press 1 to Login");
                 Console.WriteLine("Press 2 to Registration");
+                Console.WriteLine("Press 3 to create bra");
 
                 var option = Console.ReadLine();
                 switch (option)
@@ -30,6 +40,9 @@ namespace Lab
                     case "2":
                         user = CreateUser();
                         break;
+                    case "3":
+                        CreateBra();
+                        break;
                 }
             }
             while (user == null);
@@ -37,7 +50,7 @@ namespace Lab
             Console.WriteLine($"User role {user.Role}");
             if (user.Role == Role.Admin)
             {
-                var users = GetAllUsers();
+                var users = _userRepository.GetAll();
                 WriteUsers(users);
             }
 
@@ -55,75 +68,34 @@ namespace Lab
                 var id = int.Parse(Console.ReadLine());
 
                 var userForDelte = users.FirstOrDefault(x => x.Id == id);
-                DeleteUser(userForDelte);
+                _userRepository.Delete(userForDelte.Id);
             }
-        }
-
-        public static void DeleteUser(User userForDelte)
-        {
-            var users = GetAllUsers();
-            users = users
-                .Where(x => x.Id != userForDelte.Id).ToList();
-
-            var jss = new JavaScriptSerializer();
-
-            using (var file = File.Create(UserFileName))
-            {
-                using (var sw = new StreamWriter(file))
-                {
-                    users
-                        .ForEach(user =>
-                            sw.WriteLine(
-                                jss.Serialize(user)
-                            )
-                        );
-                }
-            }
-        }
-
-        public static List<User> GetAllUsers()
-        {
-            var jss = new JavaScriptSerializer();
-            var lines = File.ReadAllLines(UserFileName);
-            var usersFast =
-                lines.Select(line => jss.Deserialize<User>(line))
-                .ToList();
-
-            return usersFast;
         }
 
         public static User CreateUser()
         {
             Console.WriteLine("Hi what is you name?");
             var login = Console.ReadLine();
-            var password = GetPassword();
+            var password = _uiConsole.GetPassword();
 
-            var maxId = GetAllUsers().Max(x => x.Id);
-            var user = new User();
-            user.Login = login;
-            user.Password = password;
-            user.Role = Role.User;
-            user.Id = maxId + 1;
-
-            var json = new JavaScriptSerializer().Serialize(user);
-            using (var file = File.Open(UserFileName, FileMode.Append))
-            {
-                using (var sw = new StreamWriter(file))
-                {
-                    sw.WriteLine(json);
-                }
-            }
-
-            return user;
+            return _userRepository.SaveUser(login, password);
         }
+
+        public static void CreateBra()
+        {
+            Console.WriteLine("Enter size?");
+            var size = (BoobsSize)int.Parse(Console.ReadLine());
+            _boobsRepository.SaveBoobs(size);
+        }
+       
 
         public static User Login()
         {
             Console.WriteLine("Enter login");
             var login = Console.ReadLine();
-            var password = GetPassword();
+            var password = _uiConsole.GetPassword();
 
-            var users = GetAllUsers();
+            var users = _userRepository.GetAll();
             var realUser = users.FirstOrDefault(user =>
                 user.Login == login
                 && user.Password == password);
@@ -138,38 +110,6 @@ namespace Lab
             }
 
             return realUser;
-        }
-
-        public static string GetPassword()
-        {
-            Console.WriteLine("Enter passwrod");
-            string pass = "";
-            do
-            {
-                var key = Console.ReadKey(true);
-                // Backspace Should Not Work
-                if (key.Key != ConsoleKey.Backspace
-                    && key.Key != ConsoleKey.Enter)
-                {
-                    pass += key.KeyChar;
-                    Console.Write("*");
-                }
-                else
-                {
-                    if (key.Key == ConsoleKey.Backspace
-                        && pass.Length > 0)
-                    {
-                        pass = pass.Substring(0, (pass.Length - 1));
-                        Console.Write("\b \b");
-                    }
-                    else if (key.Key == ConsoleKey.Enter)
-                    {
-                        break;
-                    }
-                }
-            } while (true);
-
-            return pass;
         }
     }
 }

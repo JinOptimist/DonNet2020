@@ -44,10 +44,16 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="db\BaseRepository.cs" />
+    <Compile Include="db\BoobsRepository.cs" />
+    <Compile Include="db\UserRepository.cs" />
+    <Compile Include="dto\Boobs.cs" />
+    <Compile Include="dto\BaseDto.cs" />
     <Compile Include="dto\User.cs" />
     <Compile Include="Helper.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="UiConsole.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
